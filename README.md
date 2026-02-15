@@ -2,6 +2,8 @@
 
 An MCP (Model Context Protocol) server for managing MkDocs documentation programmatically. Built with FastMCP for easy deployment to FastMCP Cloud.
 
+Deploy once on FastMCP Cloud, then share with your entire team! Each developer simply configures their own docs path, config path, and GitHub token.
+
 ## Features
 
 - **File Management**: Create, read, update, and delete markdown documentation files
@@ -10,26 +12,47 @@ An MCP (Model Context Protocol) server for managing MkDocs documentation program
 - **Git Integration**: Commit and push changes to GitHub for automatic GitHub Pages deployment
 - **Frontmatter Support**: Read and write YAML frontmatter in documentation files
 - **Free Deployment**: Deploy to FastMCP Cloud for free (currently in beta)
+- **Shared Server**: Deploy once, share with unlimited team members
 - **AI-friendly**: MCP-compliant tool definitions
 
-## Quick Start
+## Quick Start for Users
 
-### Deploy to FastMCP Cloud (Recommended - Free)
+### Use a Pre-Deployed Server (Easiest)
 
-1. Fork or connect this repo to your GitHub account
+If someone has already deployed this to FastMCP Cloud, you can use their shared instance:
+
+1. Get the server URL from them (e.g., `https://mkdocs-mcp.fastmcp.app/mcp`)
+2. Add to your Claude Desktop or Cursor config:
+
+```json
+{
+  "mcpServers": {
+    "mkdocs": {
+      "url": "https://mkdocs-mcp.fastmcp.app/mcp",
+      "env": {
+        "MKDOCS_DOCS_PATH": "/path/to/your/docs",
+        "MKDOCS_CONFIG_PATH": "/path/to/your/mkdocs.yml",
+        "GITHUB_TOKEN": "ghp_your_token_here"
+      }
+    }
+  }
+}
+```
+
+3. That's it! Claude/Cursor can now manage your documentation
+
+### Deploy Your Own to FastMCP Cloud
+
+1. Fork this repo to your GitHub account
 2. Go to [fastmcp.cloud](https://fastmcp.cloud/)
 3. Sign in with GitHub
 4. Create a project:
-   - **Name**: `mkdocs-mcp`
+   - **Name**: `mkdocs-mcp` (or your choice)
    - **Entrypoint**: `server.py:mcp`
-   - **Authentication**: Optional
-5. FastMCP Cloud will automatically:
-   - Clone your repo
-   - Install dependencies from `requirements.txt`
-   - Deploy your server
-   - Provide a unique URL: `https://your-project.fastmcp.app/mcp`
+   - **Authentication**: Enable for team-only access
+5. FastMCP Cloud auto-deploys and gives you a URL to share
 
-Your server is now live and accessible to Claude, Cursor, and any MCP client!
+Now you can give your URL to teammates and they configure their own environment variables!
 
 ### Local Development
 
@@ -40,6 +63,7 @@ pip install -r requirements.txt
 # Set environment variables
 export MKDOCS_DOCS_PATH=/path/to/your/docs
 export MKDOCS_CONFIG_PATH=/path/to/your/mkdocs.yml
+export GITHUB_TOKEN=ghp_your_token
 
 # Run locally
 fastmcp run server.py:mcp
@@ -140,87 +164,162 @@ Commit changes and push to GitHub.
 
 ## Configuration
 
-Set these environment variables:
+Each developer/team using the shared server needs to configure these environment variables:
 
-- `MKDOCS_DOCS_PATH` - Path to your docs directory (default: `./docs`)
-- `MKDOCS_CONFIG_PATH` - Path to your mkdocs.yml file (default: `./mkdocs.yml`)
+- `MKDOCS_DOCS_PATH` - **Required** - Path to your documentation directory (e.g., `/path/to/my-project/docs`)
+- `MKDOCS_CONFIG_PATH` - **Required** - Path to your `mkdocs.yml` file (e.g., `/path/to/my-project/mkdocs.yml`)
+- `GITHUB_TOKEN` - **Optional but recommended** - GitHub personal access token with repo write access for `commit_and_push` tool
 
-FastMCP Cloud will automatically use these from your repository.
+### Getting a GitHub Token
 
-## Deployment Platforms
+For the `commit_and_push` tool to work:
+1. Go to https://github.com/settings/personal-access-tokens/new
+2. Create token with scopes: `repo` (full control)
+3. Copy token and set as `GITHUB_TOKEN` in your config
 
-### FastMCP Cloud (Recommended - Free)
-- ✅ Free while in beta
-- ✅ Automatic GitHub integration
-- ✅ Auto-redeploy on push
-- ✅ Instant URL generation
-- URL format: `https://your-project.fastmcp.app/mcp`
+### Example Configurations
 
-### Docker (Any Cloud Provider)
-```bash
-docker build -t mkdocs-mcp .
-docker run -e MKDOCS_DOCS_PATH=/docs -e MKDOCS_CONFIG_PATH=/mkdocs.yml \
-  -v /path/to/docs:/docs mkdocs-mcp
-```
-
-Deploy to: AWS ECS, Google Cloud Run, Heroku, Railway, DigitalOcean, etc.
-
-## Usage with Claude/Cursor
-
-Once deployed, connect to your FastMCP Cloud server:
-
+**Claude Desktop** (~/.claude/claude_desktop_config.json):
 ```json
 {
   "mcpServers": {
-    "mkdocs": {
-      "url": "https://your-project.fastmcp.app/mcp"
+    "docs": {
+      "url": "https://mkdocs-mcp.fastmcp.app/mcp",
+      "env": {
+        "MKDOCS_DOCS_PATH": "/Users/you/project/docs",
+        "MKDOCS_CONFIG_PATH": "/Users/you/project/mkdocs.yml",
+        "GITHUB_TOKEN": "ghp_xxxxxxxxxxxx"
+      }
     }
   }
 }
 ```
 
+**Cursor** (.cursor/mcp_config.json):
+```json
+{
+  "mcpServers": {
+    "mkdocs": {
+      "url": "https://mkdocs-mcp.fastmcp.app/mcp",
+      "env": {
+        "MKDOCS_DOCS_PATH": "/Users/you/workspace/docs",
+        "MKDOCS_CONFIG_PATH": "/Users/you/workspace/mkdocs.yml",
+        "GITHUB_TOKEN": "ghp_xxxxxxxxxxxx"
+      }
+    }
+  }
+}
+```
+
+**Local FastMCP CLI**:
+```bash
+export MKDOCS_DOCS_PATH=/path/to/docs
+export MKDOCS_CONFIG_PATH=/path/to/mkdocs.yml
+export GITHUB_TOKEN=ghp_xxxxxxxxxxxx
+fastmcp run server.py:mcp
+```
+
+## How Teams Use This
+
+### Scenario: Shared Team Server
+
+1. **Team Lead** deploys to FastMCP Cloud once:
+   ```bash
+   # Deploy from their repo
+   # Get URL: https://team-docs-mcp.fastmcp.app/mcp
+   ```
+
+2. **Team Lead** shares URL with team:
+   ```
+   Server URL: https://team-docs-mcp.fastmcp.app/mcp
+   GitHub Token needed: Yes (for commit_and_push)
+   ```
+
+3. **Each Team Member** configures for their own docs:
+   
+   **Member A** (Project Alpha):
+   ```json
+   {
+     "url": "https://team-docs-mcp.fastmcp.app/mcp",
+     "env": {
+       "MKDOCS_DOCS_PATH": "/home/membera/alpha/docs",
+       "MKDOCS_CONFIG_PATH": "/home/membera/alpha/mkdocs.yml",
+       "GITHUB_TOKEN": "ghp_team_shared_token"
+     }
+   }
+   ```
+
+   **Member B** (Project Beta):
+   ```json
+   {
+     "url": "https://team-docs-mcp.fastmcp.app/mcp",
+     "env": {
+       "MKDOCS_DOCS_PATH": "/home/memberb/beta/docs",
+       "MKDOCS_CONFIG_PATH": "/home/memberb/beta/mkdocs.yml",
+       "GITHUB_TOKEN": "ghp_team_shared_token"
+     }
+   }
+   ```
+
+4. **Result**: Both team members use the same server URL, just with different local paths
+
+### Benefits
+
+- ✅ Deploy once, share with unlimited users
+- ✅ No duplicate servers
+- ✅ Single maintenance point
+- ✅ Each developer manages their own docs path
+- ✅ All use the same MCP tools
+- ✅ Free and fast (FastMCP Cloud)
+
+## Deployment Platforms
+
+## Deployment Platforms
+
+### FastMCP Cloud (Recommended)
+- ✅ Free while in beta
+- ✅ Automatic GitHub integration
+- ✅ Auto-redeploy on push
+- ✅ Shareable URL for entire team
+- ✅ Easy collaboration
+- URL format: `https://your-project.fastmcp.app/mcp`
+
+Deploy at: https://fastmcp.cloud/
+
+### Docker (Self-Hosted Alternative)
+
+For teams wanting self-hosted deployment:
+
+```bash
+docker build -t mkdocs-mcp .
+docker run -p 8000:8000 \
+  -e MKDOCS_DOCS_PATH=/docs \
+  -e MKDOCS_CONFIG_PATH=/mkdocs.yml \
+  -v /path/to/docs:/docs \
+  mkdocs-mcp
+```
+
+Deploy to:
+- Railway.app (free tier)
+- Fly.io (free tier)
+- Google Cloud Run (free tier)
+- Heroku
+- DigitalOcean
+- AWS ECS
+
 ## Project Structure
 
 ```
-server.py          # Main FastMCP server implementation
-requirements.txt   # Python dependencies
+server.py          # FastMCP server with all 9 tools
+requirements.txt   # Python dependencies (fastmcp, pyyaml)
 Dockerfile         # For containerized deployment
 ```
 
-## Development
+This is a FastMCP 2.0 server compatible with both FastMCP Cloud and the FastMCP SDK.
 
-This is a FastMCP 2.0 server that works with both FastMCP Cloud and the FastMCP SDK.
+## Support & Community
 
-### Testing Command
-```bash
-fastmcp inspect server.py:mcp
-```
-
-## Benefits
-
-✅ **Free Deployment** - FastMCP Cloud beta is free
-✅ **Easy Setup** - 3 steps to production
-✅ **Zero Maintenance** - Auto-redeploy on push
-✅ **Full Control** - Complete documentation structure access
-✅ **Auto-deployment** - Automatic GitHub Pages updates
-✅ **Search** - Regex-based content matching
-✅ **AI-friendly** - MCP-compliant tool definitions
-
-## Support
-
-- **FastMCP Cloud Issues**: [fastmcp.cloud support](https://discord.gg/aGsSC3yDF4)
-- **FastMCP Docs**: [fastmcp.wiki](https://fastmcp.wiki/)
-- **GitHub Issues**: Report issues here
-
-## License
-
-MIT
-
-## Differences from TypeScript Version
-
-This Python version is optimized for FastMCP Cloud deployment while maintaining full feature parity with the TypeScript version. Key differences:
-
-- Uses FastMCP framework instead of MCP SDK
-- Deployed as Python server (not Node.js)
-- Automatic dependency detection from `requirements.txt`
-- Direct FastMCP Cloud integration
+- **FastMCP Docs**: https://fastmcp.wiki/
+- **FastMCP Discord**: https://discord.gg/aGsSC3yDF4
+- **Issues**: GitHub Issues on this repo
+- **Questions**: Ask in FastMCP community
