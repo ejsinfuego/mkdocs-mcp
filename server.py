@@ -18,18 +18,22 @@ from fastmcp import FastMCP
 # Initialize FastMCP server
 mcp = FastMCP("mkdocs-mcp")
 
-# Configuration from environment variables
+# Configuration from environment variables (validated at runtime, not import time)
 DOCS_PATH = os.getenv("MKDOCS_DOCS_PATH", "./docs")
 CONFIG_PATH = os.getenv("MKDOCS_CONFIG_PATH", "./mkdocs.yml")
 
-# Ensure paths are Path objects
-docs_dir = Path(DOCS_PATH)
-config_file = Path(CONFIG_PATH)
 
-if not docs_dir.exists():
-    raise ValueError(f"Documentation path does not exist: {DOCS_PATH}")
-if not config_file.exists():
-    raise ValueError(f"Config file does not exist: {CONFIG_PATH}")
+def get_paths():
+    """Get and validate documentation paths at runtime."""
+    docs_dir = Path(DOCS_PATH)
+    config_file = Path(CONFIG_PATH)
+    
+    if not docs_dir.exists():
+        return None, None, f"Documentation path does not exist: {DOCS_PATH}. Set MKDOCS_DOCS_PATH environment variable."
+    if not config_file.exists():
+        return None, None, f"Config file does not exist: {CONFIG_PATH}. Set MKDOCS_CONFIG_PATH environment variable."
+    
+    return docs_dir, config_file, None
 
 
 def extract_frontmatter(content: str) -> tuple[Dict[str, Any], str]:
@@ -72,6 +76,10 @@ def list_docs(pattern: str = "**/*.md") -> str:
         JSON with file list and metadata
     """
     try:
+        docs_dir, _, error = get_paths()
+        if error:
+            return json.dumps({"error": error})
+        
         # Handle glob patterns
         if "**" in pattern:
             files = list(docs_dir.glob(pattern))
@@ -114,6 +122,10 @@ def read_doc(file_path: str) -> str:
         JSON with frontmatter and content
     """
     try:
+        docs_dir, _, error = get_paths()
+        if error:
+            return json.dumps({"error": error})
+        
         full_path = docs_dir / file_path
         if not full_path.exists():
             return json.dumps({"error": f"File not found: {file_path}"})
@@ -145,6 +157,10 @@ def create_doc(file_path: str, content: str, frontmatter: Optional[Dict[str, Any
         JSON with success message
     """
     try:
+        docs_dir, _, error = get_paths()
+        if error:
+            return json.dumps({"error": error})
+        
         full_path = docs_dir / file_path
         full_path.parent.mkdir(parents=True, exist_ok=True)
         
@@ -183,6 +199,10 @@ def update_doc(file_path: str, content: str, frontmatter: Optional[Dict[str, Any
         JSON with success message
     """
     try:
+        docs_dir, _, error = get_paths()
+        if error:
+            return json.dumps({"error": error})
+        
         full_path = docs_dir / file_path
         if not full_path.exists():
             return json.dumps({"error": f"File not found: {file_path}"})
@@ -222,6 +242,10 @@ def delete_doc(file_path: str) -> str:
         JSON with success message
     """
     try:
+        docs_dir, _, error = get_paths()
+        if error:
+            return json.dumps({"error": error})
+        
         full_path = docs_dir / file_path
         if not full_path.exists():
             return json.dumps({"error": f"File not found: {file_path}"})
@@ -251,6 +275,10 @@ def search_docs(query: str, case_sensitive: bool = False) -> str:
         JSON with search results
     """
     try:
+        docs_dir, _, error = get_paths()
+        if error:
+            return json.dumps({"error": error})
+        
         flags = 0 if case_sensitive else re.IGNORECASE
         regex = re.compile(query, flags)
         results: List[Dict[str, Any]] = []
@@ -294,6 +322,10 @@ def get_navigation() -> str:
         JSON with site name, navigation, and theme
     """
     try:
+        _, config_file, error = get_paths()
+        if error:
+            return json.dumps({"error": error})
+        
         content = config_file.read_text(encoding="utf-8")
         config = yaml.safe_load(content) or {}
         
@@ -319,6 +351,10 @@ def update_navigation(navigation: List[Any]) -> str:
         JSON with success message
     """
     try:
+        _, config_file, error = get_paths()
+        if error:
+            return json.dumps({"error": error})
+        
         content = config_file.read_text(encoding="utf-8")
         config = yaml.safe_load(content) or {}
         
@@ -349,6 +385,10 @@ def commit_and_push(message: str) -> str:
         JSON with commit/push results
     """
     try:
+        docs_dir, _, error = get_paths()
+        if error:
+            return json.dumps({"error": error})
+        
         repo_path = docs_dir.parent  # Parent of docs/ directory
         
         # Git add all changes
