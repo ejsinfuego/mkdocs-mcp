@@ -2,18 +2,18 @@
 
 An MCP (Model Context Protocol) server for managing MkDocs documentation programmatically. Built with FastMCP for easy deployment to FastMCP Cloud.
 
-Deploy once on FastMCP Cloud, then share with your entire team! Each developer simply configures their own docs path, config path, and GitHub token.
+Deploy once on FastMCP Cloud, then share with your entire team! Each developer simply configures their own docs path and config path.
 
 ## Features
 
 - **File Management**: Create, read, update, and delete markdown documentation files
 - **Search**: Full-text search across all documentation files with regex support
 - **Navigation Management**: View and update the navigation structure in `mkdocs.yml`
-- **Git Integration**: Commit and push changes to GitHub for automatic GitHub Pages deployment
 - **Frontmatter Support**: Read and write YAML frontmatter in documentation files
 - **Free Deployment**: Deploy to FastMCP Cloud for free (currently in beta)
 - **Shared Server**: Deploy once, share with unlimited team members
 - **AI-friendly**: MCP-compliant tool definitions
+- **Separation of Concerns**: Focuses on documentation operations, letting other tools handle Git
 
 ## Quick Start for Users
 
@@ -31,8 +31,7 @@ If someone has already deployed this to FastMCP Cloud, you can use their shared 
       "url": "https://mkdocs-mcp.fastmcp.app/mcp",
       "env": {
         "MKDOCS_DOCS_PATH": "/path/to/your/docs",
-        "MKDOCS_CONFIG_PATH": "/path/to/your/mkdocs.yml",
-        "GITHUB_TOKEN": "ghp_your_token_here"
+        "MKDOCS_CONFIG_PATH": "/path/to/your/mkdocs.yml"
       }
     }
   }
@@ -63,7 +62,6 @@ pip install -r requirements.txt
 # Set environment variables
 export MKDOCS_DOCS_PATH=/path/to/your/docs
 export MKDOCS_CONFIG_PATH=/path/to/your/mkdocs.yml
-export GITHUB_TOKEN=ghp_your_token
 
 # Run locally
 fastmcp run server.py:mcp
@@ -153,29 +151,14 @@ Update the navigation structure in mkdocs.yml.
 }
 ```
 
-### `commit_and_push`
-Commit changes and push to GitHub.
-
-```json
-{
-  "message": "docs: Update API documentation"
-}
-```
-
 ## Configuration
 
 Each developer/team using the shared server needs to configure these environment variables:
 
 - `MKDOCS_DOCS_PATH` - **Required** - Path to your documentation directory (e.g., `/path/to/my-project/docs`)
 - `MKDOCS_CONFIG_PATH` - **Required** - Path to your `mkdocs.yml` file (e.g., `/path/to/my-project/mkdocs.yml`)
-- `GITHUB_TOKEN` - **Optional but recommended** - GitHub personal access token with repo write access for `commit_and_push` tool
 
-### Getting a GitHub Token
-
-For the `commit_and_push` tool to work:
-1. Go to https://github.com/settings/personal-access-tokens/new
-2. Create token with scopes: `repo` (full control)
-3. Copy token and set as `GITHUB_TOKEN` in your config
+**Note**: Git operations (commit, push) are intentionally not included. Use your preferred Git workflow or a dedicated Git MCP server.
 
 ### Example Configurations
 
@@ -187,8 +170,7 @@ For the `commit_and_push` tool to work:
       "url": "https://mkdocs-mcp.fastmcp.app/mcp",
       "env": {
         "MKDOCS_DOCS_PATH": "/Users/you/project/docs",
-        "MKDOCS_CONFIG_PATH": "/Users/you/project/mkdocs.yml",
-        "GITHUB_TOKEN": "ghp_xxxxxxxxxxxx"
+        "MKDOCS_CONFIG_PATH": "/Users/you/project/mkdocs.yml"
       }
     }
   }
@@ -203,8 +185,7 @@ For the `commit_and_push` tool to work:
       "url": "https://mkdocs-mcp.fastmcp.app/mcp",
       "env": {
         "MKDOCS_DOCS_PATH": "/Users/you/workspace/docs",
-        "MKDOCS_CONFIG_PATH": "/Users/you/workspace/mkdocs.yml",
-        "GITHUB_TOKEN": "ghp_xxxxxxxxxxxx"
+        "MKDOCS_CONFIG_PATH": "/Users/you/workspace/mkdocs.yml"
       }
     }
   }
@@ -215,7 +196,6 @@ For the `commit_and_push` tool to work:
 ```bash
 export MKDOCS_DOCS_PATH=/path/to/docs
 export MKDOCS_CONFIG_PATH=/path/to/mkdocs.yml
-export GITHUB_TOKEN=ghp_xxxxxxxxxxxx
 fastmcp run server.py:mcp
 ```
 
@@ -232,7 +212,6 @@ fastmcp run server.py:mcp
 2. **Team Lead** shares URL with team:
    ```
    Server URL: https://team-docs-mcp.fastmcp.app/mcp
-   GitHub Token needed: Yes (for commit_and_push)
    ```
 
 3. **Each Team Member** configures for their own docs:
@@ -243,8 +222,7 @@ fastmcp run server.py:mcp
      "url": "https://team-docs-mcp.fastmcp.app/mcp",
      "env": {
        "MKDOCS_DOCS_PATH": "/home/membera/alpha/docs",
-       "MKDOCS_CONFIG_PATH": "/home/membera/alpha/mkdocs.yml",
-       "GITHUB_TOKEN": "ghp_team_shared_token"
+       "MKDOCS_CONFIG_PATH": "/home/membera/alpha/mkdocs.yml"
      }
    }
    ```
@@ -255,8 +233,7 @@ fastmcp run server.py:mcp
      "url": "https://team-docs-mcp.fastmcp.app/mcp",
      "env": {
        "MKDOCS_DOCS_PATH": "/home/memberb/beta/docs",
-       "MKDOCS_CONFIG_PATH": "/home/memberb/beta/mkdocs.yml",
-       "GITHUB_TOKEN": "ghp_team_shared_token"
+       "MKDOCS_CONFIG_PATH": "/home/memberb/beta/mkdocs.yml"
      }
    }
    ```
@@ -310,12 +287,20 @@ Deploy to:
 ## Project Structure
 
 ```
-server.py          # FastMCP server with all 9 tools
+server.py          # FastMCP server with 8 documentation tools
 requirements.txt   # Python dependencies (fastmcp, pyyaml)
 Dockerfile         # For containerized deployment
 ```
 
 This is a FastMCP 2.0 server compatible with both FastMCP Cloud and the FastMCP SDK.
+
+## Git Workflow
+
+This MCP intentionally does not handle Git operations. Use your preferred workflow:
+- Manual `git add`, `git commit`, `git push` commands
+- GitHub Desktop, Tower, or other Git GUI tools
+- A dedicated Git MCP server for version control operations
+- GitHub Actions or CI/CD for automatic deployments
 
 ## Support & Community
 
