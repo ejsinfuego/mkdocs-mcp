@@ -8,7 +8,6 @@ Can be deployed to FastMCP Cloud for free.
 import os
 import re
 import json
-import subprocess
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -367,55 +366,6 @@ def update_navigation(navigation: List[Any]) -> str:
         return json.dumps({
             "success": True,
             "message": "Navigation updated in mkdocs.yml",
-        }, indent=2)
-    
-    except Exception as e:
-        return json.dumps({"error": str(e)})
-
-
-@mcp.tool()
-def commit_and_push(message: str) -> str:
-    """
-    Commit changes and push to GitHub.
-    
-    Args:
-        message: Commit message
-    
-    Returns:
-        JSON with commit/push results
-    """
-    try:
-        docs_dir, _, error = get_paths()
-        if error:
-            return json.dumps({"error": error})
-        
-        repo_path = docs_dir.parent  # Parent of docs/ directory
-        
-        # Git add all changes
-        subprocess.run(["git", "add", "."], cwd=repo_path, check=True, capture_output=True)
-        
-        # Git commit with message
-        commit_result = subprocess.run(
-            ["git", "commit", "-m", message],
-            cwd=repo_path,
-            capture_output=True,
-            text=True,
-        )
-        
-        # Git push to GitHub
-        push_result = subprocess.run(
-            ["git", "push", "origin", "main"],
-            cwd=repo_path,
-            capture_output=True,
-            text=True,
-        )
-        
-        return json.dumps({
-            "success": True,
-            "message": message,
-            "commit": commit_result.stdout.strip(),
-            "push": push_result.stdout.strip(),
-            "deployment": "GitHub Actions will auto-deploy to GitHub Pages in ~30 seconds",
         }, indent=2)
     
     except Exception as e:
